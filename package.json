@@ -1,0 +1,15 @@
+{
+  "name": "1roomdemosocket.io",
+  "version": "0.1.0",
+  "description": "A demo of connexion with one room with socket.io and Node.JS",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^4.18.1",
+    "socket.io": "latest"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
