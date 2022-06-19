@@ -25,6 +25,13 @@ Arena = function (game) {
     var materialSky = new BABYLON.StandardMaterial("skyTexture", scene);
     materialSky.diffuseTexture = new BABYLON.Texture("assets/images/ciel.jpg", scene);
 
+    //Matériel pour l'arbre
+    var materialWood = new BABYLON.StandardMaterial("woodTexture", scene);
+    materialWood.diffuseTexture = new BABYLON.Texture("assets/images/bois.jpg", scene);
+
+    var materialFeuilles = new BABYLON.StandardMaterial("feuilleTexture", scene);
+    materialFeuilles.diffuseTexture = new BABYLON.Texture("assets/images/feuilles.jpg", scene);
+
     const optionsGround = {
         width: 10000,
         height: 10000,
@@ -45,6 +52,25 @@ Arena = function (game) {
     sky.position.y = -1750;
     sky.material = materialSky;
     sky.checkCollisions = true;
+
+    //MUSIQUE
+    const music = new BABYLON.Sound("la comté", "https://soundcloud.com/user-433351325/theme-vark-dador-musique-de-film-orchestral?utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing", scene, null, {loop: true, autoplay: true});
+
+    //Arbres
+
+    optionsTronc = {
+        height: 500,
+        diameterTop: 40,
+        diameterBottom: 55,
+        tessellation: 52,
+    }
+
+    var tronc = BABYLON.MeshBuilder.CreateCylinder("tronc", optionsTronc, scene);
+    tronc.material = materialWood;
+    tronc.position.x = 300;
+    tronc.position.z = 400;
+    tronc.checkCollisions = true;
+
 
     // DEFINITION DES PROPS ------------------------------------------------
 
