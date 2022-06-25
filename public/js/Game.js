@@ -1,7 +1,7 @@
 // Page entièrement chargé, on lance le jeu
-document.addEventListener("DOMContentLoaded", function () {
-    new Game('renderCanvas');
-}, false);
+//document.addEventListener("DOMContentLoaded", function () {
+    //new Game('renderCanvas');
+//}, false);
 
 Game = function (canvasId, playerConfig, props) {
     // Canvas et engine défini ici
