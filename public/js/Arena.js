@@ -7,8 +7,8 @@ Arena = function (game) {
     var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 10, 0), scene);
     var light2 = new BABYLON.HemisphericLight("light2", new BABYLON.Vector3(0, -1, 0), scene);
     light2.intensity = 0.8;
-
-    // // Material pour le sol
+  
+    //Material pour le sol
     var materialGround = new BABYLON.StandardMaterial("wallTexture", scene);
     materialGround.diffuseTexture = new BABYLON.Texture("assets/images/brick.jpg", scene);
     materialGround.diffuseTexture.uScale = 8.0;
@@ -28,17 +28,110 @@ Arena = function (game) {
     //Matériel pour l'arbre
     var materialWood = new BABYLON.StandardMaterial("woodTexture", scene);
     materialWood.diffuseTexture = new BABYLON.Texture("assets/images/bois.jpg", scene);
+    materialWood.ampScale = 50;
 
-    var materialFeuilles = new BABYLON.StandardMaterial("feuilleTexture", scene);
-    materialFeuilles.diffuseTexture = new BABYLON.Texture("assets/images/feuilles.jpg", scene);
+    var materialLeaf = new BABYLON.StandardMaterial("feuilleTexture", scene);
+    materialLeaf.diffuseColor = new BABYLON.Color3(0.5, 1, 0.5);
+
+    //Générateur d'abres
+    QuickTreeGenerator = function (sizeBranch, sizeTrunk, radius, trunkMaterial, materialLeaf, scene) {
+
+        var tree = new BABYLON.Mesh("tree", scene);
+        tree.isVisible = false;
+
+        var leaves = new BABYLON.Mesh("leaves", scene);
+
+        var vertexData = BABYLON.VertexData.CreateSphere({ segments: 2, diameter: sizeBranch });
+
+        vertexData.applyToMesh(leaves, false);
+
+        var positions = leaves.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+        var indices = leaves.getIndices();
+        var numberOfPoints = positions.length / 3;
+
+        var map = [];
+
+        //Le plus haut point de la sphere
+        var v3 = BABYLON.Vector3;
+        var max = [];
+
+        for (var i = 0; i < numberOfPoints; i++) {
+            var p = new v3(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]);
+
+            if (p.y >= sizeBranch / 2) {
+                max.push(p);
+            }
+
+            var found = false;
+            for (var index = 0; index < map.length && !found; index++) {
+                var array = map[index];
+                var p0 = array[0];
+                if (p0.equals(p) || (p0.subtract(p)).lengthSquared() < 0.01) {
+                    array.push(i * 3);
+                    found = true;
+                }
+            }
+            if (!found) {
+                var array = [];
+                array.push(p, i * 3);
+                map.push(array);
+            }
+
+        }
+        var randomNumber = function (min, max) {
+            if (min == max) {
+                return (min);
+            }
+            var random = Math.random();
+            return ((random * (max - min)) + min);
+        };
+
+        map.forEach(function (array) {
+            var index, min = -sizeBranch / 10, max = sizeBranch / 10;
+            var rx = randomNumber(min, max);
+            var ry = randomNumber(min, max);
+            var rz = randomNumber(min, max);
+
+            for (index = 1; index < array.length; index++) {
+                var i = array[index];
+                positions[i] += rx;
+                positions[i + 1] += ry;
+                positions[i + 2] += rz;
+            }
+        });
+
+        leaves.setVerticesData(BABYLON.VertexBuffer.PositionKind, positions);
+        var normals = [];
+        BABYLON.VertexData.ComputeNormals(positions, indices, normals);
+        leaves.setVerticesData(BABYLON.VertexBuffer.NormalKind, normals);
+        leaves.convertToFlatShadedMesh();
+
+        leaves.material = materialLeaf;
+        leaves.position.y = sizeTrunk + sizeBranch / 2 - 2;
+
+        leaves.parent = tree;
+        return tree;
+
+    };
+
+    //Matériel pour le palais
+    var materialMur = new BABYLON.StandardMaterial("murTexture", scene);
+    materialMur.diffuseTexture = new BABYLON.Texture("assets/images/mur.jpg", scene);
+
+    var materialBoule = new BABYLON.StandardMaterial("bouleTexture", scene);
+    materialBoule.diffuseTexture = new BABYLON.Texture("assets/images/boule.jpg", scene);
+
+    materialClock = new BABYLON.StandardMaterial("clockTexture", scene);
+    materialClock.diffuseTexture = new BABYLON.Texture("assets/images/horloge.jpg", scene);
 
     const optionsGround = {
         width: 10000,
         height: 10000,
-        updatable: true
+        updatable: true,
+        subdivisions: 24
     }
 
-    var ground = BABYLON.MeshBuilder.CreateGround("ground", optionsGround, scene);
+    var ground = BABYLON.MeshBuilder.CreateGroundFromHeightMap("ground", "assets/images/groundpng.png",optionsGround, scene);
     ground.material = materialGround;
     ground.checkCollisions = true;
 
@@ -53,25 +146,108 @@ Arena = function (game) {
     sky.material = materialSky;
     sky.checkCollisions = true;
 
+    //Palais
+
+    optionsPalais = {
+        depth: 300,
+        height: 350,
+        width: 1000,
+        updatable: true,
+        tileSize: 40,
+    }
+
+    var palais = BABYLON.MeshBuilder.CreateTiledBox("palais", optionsPalais, scene);
+    palais.position.x = -1100;
+    palais.position.z = 650;
+    palais.position.y = 300;
+    palais.material = materialMur;
+    palais.rotation.y = 62;
+    palais.checkCollisions = false;
+
+    optionsBasePalais = {
+        depth: 300,
+        height: 250,
+        width: 380,
+        updatable: true,
+        tileSize: 40,
+    }
+
+    var basePalais = BABYLON.MeshBuilder.CreateTiledBox("basePalais", optionsBasePalais, scene);
+    basePalais.position.x = -1310;
+    basePalais.position.y = 110;
+    basePalais.position.z = 420;
+    basePalais.rotation.y = 62;
+    basePalais.material = materialMur;
+    basePalais.checkCollisions = true;
+
+    var basePalais2 = basePalais.clone("basePalais2");
+    basePalais2.position.x = -890;
+    basePalais2.position.z = 880;
+
+    optionsRoof = {
+        diameter: 300,
+        slice: 0.4,
+        sideOrientation: BABYLON.Mesh.DOUBLESIDE
+    }
+
+    var roof = BABYLON.MeshBuilder.CreateSphere("sphere", optionsRoof, scene);
+    roof.position.y = 430;
+    roof.position.x = -1100;
+    roof.position.z = 655;
+    roof.material = materialMur;
+
+    optionsBoule = {
+        segments: 60,
+        diameter: 40,
+    }
+
+    var bouleallé = BABYLON.MeshBuilder.CreateSphere("boule1", optionsBoule, scene);
+    bouleallé.position.y = 20;
+    bouleallé.position.x = -1000;
+    bouleallé.position.z = 380;
+    bouleallé.material = materialBoule;
+    bouleallé.checkCollisions = true;
+
+    var bouleallé2 = bouleallé.clone("bouleallé2");
+    bouleallé2.position.x = -785;
+    bouleallé2.position.z = 600;
+
+    optionsClock = {
+        radius: 75,
+        tessellation: 80
+
+    }
+
+    var clock = BABYLON.MeshBuilder.CreateDisc("clock", optionsClock, scene);
+    clock.position.y = 300;
+    clock.position.x = -990;
+    clock.position.z = 545;
+    clock.rotation.y = 62;
+    clock.material = materialClock;
+    
+
     //MUSIQUE
     const music = new BABYLON.Sound("la comté", "https://soundcloud.com/user-433351325/theme-vark-dador-musique-de-film-orchestral?utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing", scene, null, {loop: true, autoplay: true});
 
-    //Arbres
+    //Arbres avec le générateur
+    
+        optionsTrunk = {
+            height: 180,
+            diameterTop: 21,
+            diameterBottom: 28
+        }
 
-    optionsTronc = {
-        height: 500,
-        diameterTop: 40,
-        diameterBottom: 55,
-        tessellation: 52,
-    }
+        var trunk = BABYLON.MeshBuilder.CreateCylinder("trunk", optionsTrunk, scene);
+        trunk.position.x = 300;
+        trunk.position.y = 34;
+        trunk.material = materialWood;
+        trunk.checkCollisions = true;
 
-    var tronc = BABYLON.MeshBuilder.CreateCylinder("tronc", optionsTronc, scene);
-    tronc.material = materialWood;
-    tronc.position.x = 300;
-    tronc.position.z = 400;
-    tronc.checkCollisions = true;
-
-
+        var leaves = QuickTreeGenerator(100, 110, 20, materialWood, materialLeaf, scene);
+        leaves.position.x = 300;
+        leaves.checkCollisions = true;
+    
+    
     // DEFINITION DES PROPS ------------------------------------------------
 
     // Liste des objets stocké dans le jeu
