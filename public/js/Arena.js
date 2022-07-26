@@ -1,13 +1,19 @@
-Arena = function (game) {
+Arena = function(game,props) {
     // Appel des variables nécéssaires
     this.game = game;
     var scene = game.scene;
+
+    // Import de l'armurerie depuis Game
+    this.Armory = game.armory;
+
+    //Import de Server depuis Game
+    this.server = game.server;
 
     // Création de notre lumière principale
     var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 10, 0), scene);
     var light2 = new BABYLON.HemisphericLight("light2", new BABYLON.Vector3(0, -1, 0), scene);
     light2.intensity = 0.8;
-  
+
     //Material pour le sol
     var materialGround = new BABYLON.StandardMaterial("wallTexture", scene);
     materialGround.diffuseTexture = new BABYLON.Texture("assets/images/brick.jpg", scene);
@@ -131,7 +137,7 @@ Arena = function (game) {
         subdivisions: 24
     }
 
-    var ground = BABYLON.MeshBuilder.CreateGroundFromHeightMap("ground", "assets/images/groundpng.png",optionsGround, scene);
+    var ground = BABYLON.MeshBuilder.CreateGroundFromHeightMap("ground", "assets/images/groundpng.png", optionsGround, scene);
     ground.material = materialGround;
     ground.checkCollisions = true;
 
@@ -224,31 +230,28 @@ Arena = function (game) {
     clock.position.z = 545;
     clock.rotation.y = 62;
     clock.material = materialClock;
-    
+
 
     //MUSIQUE
-    const music = new BABYLON.Sound("la comté", "https://soundcloud.com/user-433351325/theme-vark-dador-musique-de-film-orchestral?utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing", scene, null, {loop: true, autoplay: true});
+    const music = new BABYLON.Sound("la comté", "https://soundcloud.com/user-433351325/theme-vark-dador-musique-de-film-orchestral?utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing", scene, null, { loop: true, autoplay: true });
 
     //Arbres avec le générateur
-    
-        optionsTrunk = {
-            height: 180,
-            diameterTop: 21,
-            diameterBottom: 28
-        }
 
-        var trunk = BABYLON.MeshBuilder.CreateCylinder("trunk", optionsTrunk, scene);
-        trunk.position.x = 300;
-        trunk.position.y = 34;
-        trunk.material = materialWood;
-        trunk.checkCollisions = true;
+    optionsTrunk = {
+        height: 180,
+        diameterTop: 21,
+        diameterBottom: 28
+    }
 
-        var leaves = QuickTreeGenerator(100, 110, 20, materialWood, materialLeaf, scene);
-        leaves.position.x = 300;
-        leaves.checkCollisions = true;
-    
-    
-    // DEFINITION DES PROPS ------------------------------------------------
+    var trunk = BABYLON.MeshBuilder.CreateCylinder("trunk", optionsTrunk, scene);
+    trunk.position.x = 300;
+    trunk.position.y = 34;
+    trunk.material = materialWood;
+    trunk.checkCollisions = true;
+
+    var leaves = QuickTreeGenerator(100, 110, 20, materialWood, materialLeaf, scene);
+    leaves.position.x = 300;
+    leaves.checkCollisions = true;
 
     // Liste des objets stocké dans le jeu
     this.bonusBox = [];
@@ -256,11 +259,11 @@ Arena = function (game) {
     this.ammosBox = [];
 
     // Les props envoyé par le serveur
-    //this.bonusServer = props[0];
-    //this.weaponServer = props[1];
-    //this.ammosServer = props[2];
+    this.bonusServer = props[0];
+    this.weaponServer = props[1];
+    this.ammosServer = props[2];
 
-    for (var i = 0; i < this.bonusServer; i++) {
+    for (var i = 0; i < this.bonusServer.length; i++) {
         // Si l'objet n'a pas été pris par un joueur
         if (this.bonusServer[i].v === 1) {
             var newBonusBox = this.newBonuses(new BABYLON.Vector3(
@@ -274,7 +277,7 @@ Arena = function (game) {
         }
     }
 
-    for (var i = 0; i < this.weaponServer; i++) {
+    for (var i = 0; i < this.weaponServer.length; i++) {
         if (this.weaponServer[i].v === 1) {
             var newWeaponBox = this.newWeaponSet(new BABYLON.Vector3(
                 this.weaponServer[i].x,
@@ -287,7 +290,7 @@ Arena = function (game) {
         }
     }
 
-    for (var i = 0; i < this.ammosServer; i++) {
+    for (var i = 0; i < this.ammosServer.length; i++) {
         if (this.ammosServer[i].v === 1) {
             var newAmmoBox = this.newAmmo(new BABYLON.Vector3(
                 this.ammosServer[i].x,
@@ -300,14 +303,13 @@ Arena = function (game) {
         }
     }
 };
-
 Arena.prototype = {
     newBonuses: function (position, type) {
         var typeBonus = type;
         var positionBonus = position;
 
         // On crée un cube
-        var newBonus = BABYLON.Mesh.CreateBox("bonusItem", 2, this.game.scene);
+        var newBonus = BABYLON.Mesh.CreateBox("bonusItem", 6, this.game.scene);
         newBonus.scaling = new BABYLON.Vector3(1, 1, 1);
 
         // On lui donne la couleur orange
@@ -329,7 +331,7 @@ Arena.prototype = {
         var typeWeapons = type;
         var positionWeapon = position;
 
-        var newSetWeapon = BABYLON.Mesh.CreateBox(this.Armory.weapons[typeWeapons].name, 1, this.game.scene);
+        var newSetWeapon = BABYLON.Mesh.CreateBox(this.Armory.weapons[typeWeapons].name, 4, this.game.scene);
         newSetWeapon.scaling = new BABYLON.Vector3(1, 0.7, 2);
 
 
@@ -344,7 +346,7 @@ Arena.prototype = {
     newAmmo: function (position, type) {
         var typeAmmos = type;
         var positionAmmo = position;
-        var newAmmo = BABYLON.Mesh.CreateBox(this.game.armory.weapons[typeAmmos].name, 1.0, this.game.scene);
+        var newAmmo = BABYLON.Mesh.CreateBox(this.game.armory.weapons[typeAmmos].name, 2.5, this.game.scene);
         newAmmo.position = positionAmmo;
         newAmmo.isPickable = false;
         newAmmo.material = new BABYLON.StandardMaterial("ammoMat", this.game.scene);
@@ -355,7 +357,7 @@ Arena.prototype = {
     },
     _checkProps: function () {
         // Pour les bonus
-        for (var i = 0; i < this.bonusBox; i++) {
+        for (var i = 0; i < this.bonusBox.length; i++) {
             // On vérifie si la distance est inférieure à 6
             if (BABYLON.Vector3.Distance(
                 this.game._PlayerData.camera.playerBox.position,
@@ -367,13 +369,16 @@ Arena.prototype = {
                 // Pour bonusBox
                 this.pickableDestroyed(this.bonusBox[i].idServer, 'bonus');
 
+                //Message de l'annonceur
+                this.displayNewPicks(paramsBonus.message);
+
                 // On supprime l'objet
                 this.bonusBox[i].dispose();
                 this.bonusBox.splice(i, 1)
             }
 
         }
-        for (var i = 0; i < this.weaponBox; i++) {
+        for (var i = 0; i < this.weaponBox.length; i++) {
             // Pour les armes
             if (BABYLON.Vector3.Distance(
                 this.game._PlayerData.camera.playerBox.position,
@@ -401,7 +406,7 @@ Arena.prototype = {
 
                     actualInventoryWeapon.isActive = false;
 
-                    Weapons.actualWeapon = Weapons.inventory - 1;
+                    Weapons.actualWeapon = Weapons.inventory.length - 1;
                     actualInventoryWeapon = Weapons.inventory[Weapons.actualWeapon];
 
                     actualInventoryWeapon.isActive = true;
@@ -409,15 +414,22 @@ Arena.prototype = {
                     Weapons.fireRate = Weapons.Armory.weapons[actualInventoryWeapon.typeWeapon].setup.cadency;
                     Weapons._deltaFireRate = Weapons.fireRate;
 
+                    Weapons.textAmmos.innerText = actualInventoryWeapon.ammos;
+
+                    Weapons.totalTextAmmos.innerText = Weapons.Armory.weapons[actualInventoryWeapon.typeWeapon].setup.ammos.maximum;
+                    Weapons.typeTextWeapon.innerText = Weapons.Armory.weapons[actualInventoryWeapon.typeWeapon].name;
+
                     // Pour weaponBox
                     this.pickableDestroyed(this.weaponBox[i].idServer, 'weapon');
+
+                    this.displayNewPicks(paramsWeapon.name);
 
                     this.weaponBox[i].dispose();
                     this.weaponBox.splice(i, 1);
                 }
             }
         }
-        for (var i = 0; i < this.ammosBox; i++) {
+        for (var i = 0; i < this.ammosBox.length; i++) {
             // Pour les munitions
             if (BABYLON.Vector3.Distance(
                 this.game._PlayerData.camera.playerBox.position,
@@ -431,11 +443,113 @@ Arena.prototype = {
                 // Pour ammosBox
                 this.pickableDestroyed(this.ammosBox[i].idServer, 'ammos');
 
+                this.displayNewPicks(paramsAmmos.meshAmmosName);
+
                 this.ammosBox[i].dispose();
                 this.ammosBox.splice(i, 1)
             }
 
         }
     },
-};
+    deletePropFromServer: function (deletedProp) {
+        // idServer est l'id de l'arme
+        var idServer = deletedProp[0];
 
+        // type nous permet de déterminer ce qu'est l'objet
+        var type = deletedProp[1];
+        switch (type) {
+            case 'ammos':
+                for (var i = 0; i < this.ammosBox.length; i++) {
+                    if (this.ammosBox[i].idServer === idServer) {
+                        this.ammosBox[i].dispose();
+                        this.ammosBox.splice(i, 1);
+                        break;
+                    }
+                }
+
+                break;
+            case 'bonus':
+                for (var i = 0; i < this.bonusBox.length; i++) {
+                    if (this.bonusBox[i].idServer === idServer) {
+                        this.bonusBox[i].dispose();
+                        this.bonusBox.splice(i, 1);
+                        break;
+                    }
+                }
+                break;
+            case 'weapon':
+                for (var i = 0; i < this.bonusBox.length; i++) {
+                    if (this.weaponBox[i].idServer === idServer) {
+                        this.weaponBox[i].dispose();
+                        this.weaponBox.splice(i, 1);
+                        break;
+                    }
+                }
+                break;
+        }
+    },
+    recreatePropFromServer: function (recreatedProp) {
+        var idServer = recreatedProp[0];
+        var type = recreatedProp[1];
+        switch (type) {
+            case 'ammos':
+                var newAmmoBox = this.newAmmo(new BABYLON.Vector3(
+                    this.ammosServer[idServer].x,
+                    this.ammosServer[idServer].y,
+                    this.ammosServer[idServer].z),
+                    this.ammosServer[idServer].t);
+
+                newAmmoBox.idServer = idServer;
+                this.ammosBox.push(newAmmoBox);
+                break;
+            case 'bonus':
+                var newBonusBox = this.newBonuses(new BABYLON.Vector3(
+                    this.bonusServer[idServer].x,
+                    this.bonusServer[idServer].y,
+                    this.bonusServer[idServer].z),
+                    this.bonusServer[idServer].t);
+
+                newBonusBox.idServer = idServer;
+                this.bonusBox.push(newBonusBox);
+                break;
+            case 'weapon':
+                var newWeaponBox = this.newWeaponSet(new BABYLON.Vector3(
+                    this.weaponServer[idServer].x,
+                    this.weaponServer[idServer].y,
+                    this.weaponServer[idServer].z),
+                    this.weaponServer[idServer].t);
+
+                newWeaponBox.idServer = idServer;
+                this.weaponBox.push(newWeaponBox);
+                break;
+        }
+    },
+
+    displayNewPicks: function (typeBonus) {
+        // Récupère les propriétés de la fenêtre d'annonce
+        var displayAnnouncement = document.getElementById('announcementKill');
+        var textDisplayAnnouncement = document.getElementById('textAnouncement');
+
+        // Si la fenêtre possède announcementClose (et qu'elle est donc fermée)
+        if (displayAnnouncement.classList.contains("annoucementClose")) {
+            displayAnnouncement.classList.remove("annoucementClose");
+        }
+        // On vérifie que la police est à 1 (nous verrons plus tard pourquoi)
+        textDisplayAnnouncement.style.fontSize = '1rem';
+
+        // On donne à textDisplayAnnouncement la valeur envoyée à displayNewPicks
+        textDisplayAnnouncement.innerText = typeBonus;
+
+        // Au bout de 4 secondes, si la fenêtre est ouverte, on la fait disparaître
+        setTimeout(function () {
+            if (!displayAnnouncement.classList.contains("annoucementClose")) {
+                displayAnnouncement.classList.add("annoucementClose");
+            }
+        }, 2000);
+    },
+
+    // Partie Server
+    pickableDestroyed: function (idServer, type) {
+        destroyPropsToServer(idServer, type)
+    },
+}
