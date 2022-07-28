@@ -13,7 +13,7 @@ Armory = function(game, player) {
                 'range': 4,
                 'damage' : 20,
                 'cadency' : 500,
-                'colorMesh' : new BABYLON.Color3((59/255), (195/255), (203/255))
+                'colorMesh' : new BABYLON.Color3((0/255), (0/255), (0/255))
             }
         },
         {
@@ -54,7 +54,7 @@ Armory = function(game, player) {
                     'meshAmmosName' : 'Balles',
                     'baseAmmos' : 200,
                     'maximum' : 400,
-                    'refuel' : 50
+                    'refuel' : 30
                 },
                 'colorMesh' : new BABYLON.Color3((27/255), (1/255), (37/255))
             }
@@ -82,7 +82,7 @@ Armory = function(game, player) {
                     // Taille de la roquette
                     'rocketSize' : 1,
                     // Rayon de l'explosion
-                    'explosionRadius' : 60
+                    'explosionRadius' : 120
                 },
                 // Couleur du mesh par défault
                 'colorMesh' : new BABYLON.Color3((209/255), (7/255), (26/255))
@@ -107,6 +107,12 @@ Armory = function(game, player) {
             'message' : 'Petit pack d\'armure',
             'type':'armor',
             'value': 20
+        },
+        {
+            'name' : 'mArmor',
+            'message': 'Gros pack d\'armure',
+            'type':'armor',
+            'value': 50
         }
     ];
     return 1
