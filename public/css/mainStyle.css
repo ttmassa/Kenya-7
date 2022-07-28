@@ -1,5 +1,4 @@
-html,
-body {
+html, body {
     overflow: hidden;
     width: 100%;
     height: 100%;
@@ -15,14 +14,13 @@ body {
     margin-top: 25px;
     touch-action: none;
 }
-
-#crossHair {
-    position: absolute;
-    height: 100%;
-    width: 100%;
-    left: calc(50% - 50px);
-    top: calc(50% - 50px);
-    pointer-events: none;
+#crossHair{
+	position: absolute;
+	height : 100px;
+	width: 100px;
+	left: calc(50% - 50px);
+	top: calc(50% - 50px);
+	pointer-events : none;
 }
 
 #tailleImage {
@@ -33,62 +31,58 @@ body {
     top: 4.75%;
 }
 
-#topHud {
-    position: absolute;
-    top: 0;
-    width: 100%;
-    pointer-events: none;
+#topHud{
+	position: absolute;
+	top: 0;
+	width: 100%;
+    pointer-events : none;
 }
 
-#bottomHud {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    pointer-events: none;
+#bottomHud{
+	position: absolute;
+	bottom: 0;
+	width: 100%;
+    pointer-events : none;
 }
-
 /* ------------------------------ STATUT DU PLAYER ------------------------------- */
-#statusPlayer {
-    float: left;
+#statusPlayer{
+	float: left;
     height: 200px;
     width: 270px;
-    background-color: rgba(235, 165, 85, 0);
+    background-color: rgba(61,61,61,.5);
     border-top-right-radius: 5px;
 }
 
-#lifeBox {
-    padding-left: 40px;
-    margin-top: 35px;
+#lifeBox{
+	padding-left: 40px;
 }
 
 #lifeBox p {
-    font-family: sans-serif;
-    color: rgba(201, 51, 51, 0.897);
-    font-size: 1.5rem;
+	font-family: sans-serif;
+    color: white;
+    font-size: 2rem;
     position: relative;
-    top: 20px;
-    left: 70px;
+    top: 8px;
+    left: 20px;
     margin: 0;
     margin-top: 20px;
 }
 
 #lifeBox img {
-    height: 50px;
+    height: 60px;
     float: left;
-    position: absolute;
-    bottom: 52.5%;
 }
 
-#armorBox {
-    margin-top: 40px;
-    padding-left: 40px;
+#armorBox{
+	margin-top: 40px;
+	padding-left: 40px;
 }
-
+    
 
 #armorBox p {
-    font-family: sans-serif;
-    color: rgba(201, 51, 51, 0.897);
-    font-size: 1.5rem;
+	font-family: sans-serif;
+    color: white;
+    font-size: 2rem;
     position: relative;
     top: 12px;
     left: 20px;
@@ -96,41 +90,40 @@ body {
 }
 
 #armorBox img {
-    height: 55px;
+    height: 65px;
     float: left;
 }
 
 /* ------------------------------ STATUT DES MUNITIONS ------------------------------- */
-#statusAmmo {
-    float: right;
+#statusAmmo{
+	float: right;
     height: 200px;
-    width: 260px;
+    width: 300px;
+    background-color: rgba(61,61,61,.5);
     border-top-left-radius: 5px;
 }
 
-#ammoBox {
-    padding-left: 30px;
-    margin-top: 91px;
+#ammoBox{
+	padding-left: 38px;
 }
 
 #ammoBox p {
-    font-family: sans-serif;
-    color: rgba(201, 51, 51, 0.897);
+	font-family: sans-serif;
+    color: white;
     font-size: 2rem;
     position: relative;
-    top: 21.5px;
+    top: 10px;
     left: 20px;
     margin: 0;
     margin-top: 20px;
 }
 
 #ammoBox img {
-    height: 50px;
+    height: 60px;
     float: left;
-    margin-top: 10px;
 }
 
-#typeWeapon {
+#typeWeapon{
     font-family: serif;
     text-transform: uppercase;
     letter-spacing: 6px;
@@ -141,30 +134,26 @@ body {
 }
 
 /* ---------------------------------- LEADERBOARD ------------------------------------ */
-h2 {
+h2{
     margin: 0;
     font-family: serif;
     font-weight: normal;
-    font-size: 20px;
     text-transform: uppercase;
-    text-align: center;
     letter-spacing: 4px;
     margin-bottom: 20px;
     margin-top: 16px;
 }
-
-#leaderBoard {
-    float: right;
-    height: 210px;
+#leaderBoard{
+	float: right;
+    height: 280px;
     width: 220px;
-    background-color: rgba(61, 61, 61, 0.466);
+    background-color: rgba(61,61,61,.5);
     border-bottom-left-radius: 5px;
-    padding: 10px;
-    color: rgba(201, 51, 51, 0.897);
+    padding:30px;
+    color: white;
     margin-right: 20px;
 }
-
-#leaderBoard ul {
+#leaderBoard ul{
     list-style: none;
     padding: 0;
     margin: 0;
@@ -174,59 +163,52 @@ h2 {
     position: relative;
     border: 1px solid #b1b1b1;
 }
-
-#leaderBoard ul li {
+#leaderBoard ul li{
     padding: 8px 0;
 }
+#leaderBoard ul li p{
+    margin:0;
+}
+.nameLeaderboard{
 
-#leaderBoard ul li p {
-    margin: 0;
 }
 
-#leaderBoard p {
-    text-align: center;
-}
-
-#identityGame {
+#identityGame{
     font-family: sans-serif
 }
-
-.scoreLeaderboard {
+.scoreLeaderboard{
     float: right;
     font-family: serif;
     text-transform: uppercase;
     letter-spacing: 2px;
 }
-
 /* ------------------------------- FENETRE D'ANNONCES --------------------------------- */
-#announcementKill {
-    position: absolute;
+#announcementKill{
+	position: absolute;
     margin: 0 auto;
     width: 110%;
     left: -10%;
     top: 35%;
-    background-color: rgba(61, 61, 61, .8);
+    background-color: rgba(61,61,61,.8);
     padding: 10px;
-    pointer-events: none;
-    opacity: 1;
-    transition: all 0.5s ease;
+    pointer-events:none;
+    opacity : 1;
+    transition :all 0.5s ease;
     transform-origin: 50% 0;
     transform: scaleY(1);
 }
-
-.annoucementClose {
-    opacity: 0 !important;
-    transform: scaleY(0) !important;
+.annoucementClose{
+	opacity : 0!important;
+    transform: scaleY(0)!important;
 }
-
-#interiorDiv {
+#interiorDiv{
     width: 100%;
     border: 1px solid #9c9c9c;
     margin-left: 5%;
 }
 
-#textAnouncement {
-    text-align: center;
+#textAnouncement{
+	text-align: center;
     color: white;
     font-family: serif;
     text-transform: uppercase;
