@@ -14,12 +14,15 @@ Weapons = function (Player) {
 	// Ajout de l'inventaire
 	this.inventory = [];
 
+	// Sac de munitions temporaire, tant que l'arme n'est pas possédé
+	this.tempAmmosBag = [];
+
 	// Créons notre lance roquette
 	var crook = this.newWeapon('Crook')
 	this.inventory[0] = crook;
 
-	var ezekiel = this.newWeapon('Ezekiel')
-	this.inventory[1] = ezekiel;
+	var timmy = this.newWeapon('Timmy')
+	this.inventory[1] = timmy;
 
 	// Notre arme actuelle est Ezekiel, qui se trouve en deuxième position
 	// dans le tableau des armes dans Armory
@@ -27,6 +30,25 @@ Weapons = function (Player) {
 
 	// On dis que notre arme en main est l'arme active
 	this.inventory[this.actualWeapon].isActive = true;
+
+	//Nombre de munitions affichées
+	this.textAmmos = document.getElementById('numberAmmos');
+
+	//Nombre de munitions totale affiché
+	this.totalTextAmmos = document.getElementById('totalAmmos');
+
+	//Nom de l'arme affiché 
+	this.typeTextWeapon = document.getElementById('typeWeapon');
+
+	//On récupère les paramètres de notre arme
+	var paramsActualWeapon = this.Armory.weapons[this.inventory[this.actualWeapon].typeWeapon];
+
+	//Si l'arme a des munitions 
+	if (paramsActualWeapon.setup.ammos) {
+		this.textAmmos.innerText = this.inventory[this.actualWeapon].ammos;
+		this.totalTextAmmos.innerText = paramsActualWeapon.setup.ammos.maximum;
+		this.typeTextWeapon.innerText = paramsActualWeapon.name;
+	}
 
 	// On dis que la cadence est celle de l'arme actuelle (grace à typeWeapon)
 	this.fireRate = this.Armory.weapons[this.inventory[this.actualWeapon].typeWeapon].setup.cadency;
@@ -43,34 +65,36 @@ Weapons = function (Player) {
 	// Engine va nous être utile pour la cadence de tir
 	var engine = Player.game.scene.getEngine();
 
-	//Définition du temps entre chaque rechargement
+	// Définition du temps passé a chaque rechargement
 	this._animationDelta = 0;
 
 	Player.game.scene.registerBeforeRender(function () {
-
 		if (!_this.canFire) {
-			//On anime l'arme
-			_this.animateMovementWeapon(_this._animationDelta);
-			//On augmente animationDelta
+			// On vérifie si l'arme est chagé ou n'a pas de munitions
+			if (_this.inventory[_this.actualWeapon].ammos == undefined || (
+				_this.inventory[_this.actualWeapon].ammos &&
+				_this.inventory[_this.actualWeapon].ammos > 0)) {
+				// On anime l'arme actuelle
+				_this.animateMovementWeapon(_this._animationDelta);
+			}
+			// On augmente animationDelta
 			_this._animationDelta += engine.getDeltaTime();
 			_this._deltaFireRate -= engine.getDeltaTime();
 
 			if (_this._deltaFireRate <= 0 && _this.Player.isAlive) {
-
-				//Une fois l'animation finie, on remplace l'arme à sa position initiale
-				_this.inventory[_this.actualWeapon].position = _this.inventory[_this.actualWeapon].basePosition.clone();
-				_this.inventory[_this.actualWeapon].rotation = _this.inventory[_this.actualWeapon].baseRotation.clone();
+				// Quand on a finis l'animation, on replace l'arme a sa position initiale
+				_this.inventory[_this.actualWeapon].position =
+					_this.inventory[_this.actualWeapon].basePosition.clone();
+				_this.inventory[_this.actualWeapon].rotation =
+					_this.inventory[_this.actualWeapon].baseRotation.clone();
 
 				_this.canFire = true;
 				_this._deltaFireRate = _this.fireRate;
 
-				//Quand on peut tirer, on repasse animationDelta à 0
+				// Quand on peut tirer, on repasse animationDelta à 0
 				_this._animationDelta = 0;
-
-
 			}
 		}
-
 	});
 
 };
@@ -104,9 +128,21 @@ Weapons.prototype = {
 
 				newWeapon.isActive = false;
 
+				if (this.Armory.weapons[i].setup.ammos) {
+					newWeapon.ammos = this.Armory.weapons[i].setup.ammos.baseAmmos;
+					// Si il y a des munitions supplémentaires dans le sac a munitions
+					if (this.tempAmmosBag[i]) {
+						newWeapon.ammos += this.tempAmmosBag[i];
+						// Si les munitions dépasse le maximum, on les fait revenir a une valeur normale
+						if (newWeapon.ammos > this.Armory.weapons[i].setup.ammos.maximum) {
+							newWeapon.ammos = this.Armory.weapons[i].setup.ammos.maximum;
+						}
+					}
+				}
+
+				// Positions de base
 				newWeapon.basePosition = newWeapon.position;
 				newWeapon.baseRotation = newWeapon.rotation;
-
 				break;
 			} else if (i === this.Armory.weapons.length - 1) {
 				console.log('UNKNOWN WEAPON');
@@ -130,6 +166,9 @@ Weapons.prototype = {
 			var renderWidth = this.Player.game.engine.getRenderWidth(true);
 			var renderHeight = this.Player.game.engine.getRenderHeight(true);
 
+			// On récupère les munitions de l'arme
+			var weaponAmmos = this.inventory[this.actualWeapon].ammos;
+
 			// Cast un rayon au centre de l'écran
 			var direction = this.Player.game.scene.pick(renderWidth / 2, renderHeight / 2, function (item) {
 				if (item.name == "weapon" || item.id == "headMainPlayer" || item.id == "hitBoxPlayer")
@@ -139,19 +178,23 @@ Weapons.prototype = {
 			});
 			// Si l'arme est une arme de distance
 			if (this.Armory.weapons[idWeapon].type === 'ranged') {
-				if (this.Armory.weapons[idWeapon].setup.ammos.type === 'rocket') {
-					// Nous devons tirer une roquette
-					direction = direction.pickedPoint.subtractInPlace(this.inventory[this.actualWeapon].absolutePosition.clone());
-					direction = direction.normalize();
-					// console.log(direction)
-					// On crée la roquette
-					this.createRocket(this.Player.camera.playerBox, direction);
-				} else if (this.Armory.weapons[idWeapon].setup.ammos.type === 'bullet') {
-					// Nous devons tirer des balles simples
-					this.shootBullet(direction)
-				} else {
-					// Nous devons tirer au laser
-					this.createLaser(direction)
+				if (weaponAmmos > 0) {
+					if (this.Armory.weapons[idWeapon].setup.ammos.type === 'rocket') {
+						// Nous devons tirer une roquette
+						direction = direction.pickedPoint.subtractInPlace(this.inventory[this.actualWeapon].absolutePosition.clone());
+						direction = direction.normalize();
+						// console.log(direction)
+						// On crée la roquette
+						this.createRocket(this.Player.camera.playerBox, direction);
+					} else if (this.Armory.weapons[idWeapon].setup.ammos.type === 'bullet') {
+						// Nous devons tirer des balles simples
+						this.shootBullet(direction)
+					} else {
+						// Nous devons tirer au laser
+						this.createLaser(direction)
+					}
+					this.inventory[this.actualWeapon].ammos--;
+					this.textAmmos.innerText = this.inventory[this.actualWeapon].ammos;
 				}
 			} else {
 				// Appel de l'attaque au corps a corps
@@ -193,15 +236,15 @@ Weapons.prototype = {
 		newRocket.isPickable = false;
 
 		// On a besoin de la position, la rotation et la direction
-		//sendGhostRocket(newRocket.position, newRocket.rotation, newRocket.direction);
+		sendGhostRocket(newRocket.position, newRocket.rotation, newRocket.direction);
 
 		this.Player.game._rockets.push(newRocket);
 	},
 	shootBullet: function (meshFound) {
+		var setupWeapon = this.Armory.weapons[this.actualWeapon].setup;
+
 		// Permet de connaitre l'id de l'arme dans Armory.js
 		var idWeapon = this.inventory[this.actualWeapon].typeWeapon;
-
-		var setupWeapon = this.Armory.weapons[idWeapon].setup;
 
 		if (meshFound.hit && meshFound.pickedMesh.isPlayer) {
 			// On a touché un joueur
@@ -213,12 +256,12 @@ Weapons.prototype = {
 		}
 	},
 	createLaser: function (meshFound) {
-		// Permet de connaitre l'id de l'arme dans Armory.js
-		var idWeapon = this.inventory[this.actualWeapon].typeWeapon;
-
-		var setupLaser = this.Armory.weapons[idWeapon].setup.ammos;
+		var setupLaser = this.Armory.weapons[this.actualWeapon].setup.ammos;
 
 		var positionValue = this.inventory[this.actualWeapon].absolutePosition.clone();
+
+		// Permet de connaitre l'id de l'arme dans Armory.js
+		var idWeapon = this.inventory[this.actualWeapon].typeWeapon;
 
 		if (meshFound.hit) {
 
@@ -309,58 +352,71 @@ Weapons.prototype = {
 			}
 		}
 		if (this.actualWeapon != nextPossibleWeapon) {
+			// On dis à l'arme de se repositionner à son emplacement initial
+			this.inventory[this.actualWeapon].position =
+				this.inventory[this.actualWeapon].basePosition.clone();
 
-			//Une fois l'animation finie, on remplace l'arme à sa position initiale
-			this.inventory[this.actualWeapon].position = this.inventory[this.actualWeapon].basePosition.clone();
-			this.inventory[this.actualWeapon].rotation = this.inventory[this.actualWeapon].baseRotation.clone();
+			this.inventory[this.actualWeapon].rotation =
+				this.inventory[this.actualWeapon].baseRotation.clone();
 
-			//On reset animationDelta
+			// On reset _animationDelta
 			this._animationDelta = 0;
 
-			// On dit a notre arme actuelle qu'elle n'est plus active
 			this.inventory[this.actualWeapon].isActive = false;
-			// On change l'arme actuelle avec celle qu'on a trouvé
-			this.inventory[this.actualWeapon].this.actualWeapon = nextPossibleWeapon;
-			// On dit a notre arme choisi qu'elle est l'arme active
+			this.inventory[this.actualWeapon]
+			this.actualWeapon = nextPossibleWeapon;
 			this.inventory[this.actualWeapon].isActive = true;
 
-			// On actualise la cadence de l'arme l'arme
 			this.fireRate = this.Armory.weapons[this.inventory[this.actualWeapon].typeWeapon].setup.cadency;
 			this._deltaFireRate = this.fireRate;
+
+			var actualTypeWeapon = this.Armory.weapons[this.inventory[this.actualWeapon].typeWeapon];
+
+			//Si l'arme a des munitions
+			if (actualTypeWeapon.setup.ammos) {
+				this.textAmmos.innerText = this.inventory[this.actualWeapon].ammos;
+				this.totalTextAmmos.innerText = actualTypeWeapon.setup.ammos.maximum;
+				this.typeTextWeapon.innerText = actualTypeWeapon.name;
+			} else {
+				//Sinon le texte est différent
+				this.typeTextWeapon.innerText = actualTypeWeapon.name;
+				this.textAmmos.innerText = "Inf";
+				this.typeTextWeapon.innerText = "Inf";
+			}
 		}
 	},
-
-	animateMovementWeapon : function (step) {
-
+	animateMovementWeapon: function (step) {
 		if (!this.Player.isAlive) {
 			return;
 		}
-
 		let typeWeapon = this.inventory[this.actualWeapon].typeWeapon;
 
-		//On divise step par la valeur de timeAnimation de l'arme puis on la multiplie par 180
+		// On divise step par la valeur de timaAnimation de l'arme
+		// On multiplie cette valeur par 180 
 		let result = (step / this.Armory.weapons[typeWeapon].timeAnimation) * 180;
 
-		//Pour que le result ne soit jamais supérieur à 180
+		// Si la valeur dépasse 180, c'est que step est supérieur à timeAnimation
+		// Dans ce cas, on fais en sorte que result ne dépasse jamais 180
 		if (result > 180) {
 			result = 180;
 		}
+		// La valeur 100 sert à arrondir
+		let degSin = Math.round(Math.sin(degToRad(result)) * 100) / 100;
 
-		//Pour avoir un mouvement fluide
-		let deSign = Math.round(Math.sin(degToRad(result)) * 100) / 100;
 
-		//On détermine les paramètres de mouvement pour chaque type d'arme
-		switch(typeWeapon) {
+
+		// On détermine les paramètres de mouvement pour chaque type d'arme
+		switch (typeWeapon) {
 			case 0:
 				var positionNeeded = new BABYLON.Vector3(0, -0.5, 0);
 				var rotationNeeded = new BABYLON.Vector3(-0.5, 0, 0);
 				break;
 			case 1:
-				var positionNeeded = new BABYLON.Vector3(0.5, 0.5, 0);
-				var rotationNeeded = new BABYLON.Vector3(0.1, 0.4, 0);
+				var positionNeeded = new BABYLON.Vector3(0.05, 0.05, 0);
+				var rotationNeeded = new BABYLON.Vector3(0.1, 0.1, 0);
 				break;
 			case 2:
-				var positionNeeded = new BABYLON.Vector3(1, 0.4, 0);
+				var positionNeeded = new BABYLON.Vector3(0, 0.4, 0);
 				var rotationNeeded = new BABYLON.Vector3(1.3, 0, 0);
 				break;
 			case 3:
@@ -368,18 +424,51 @@ Weapons.prototype = {
 				var rotationNeeded = new BABYLON.Vector3(0, 0, 0);
 				break;
 		}
-
-		//On récupere rotation et position de base
+		// On récupère la position et rotation de base
 		var baseRotation = this.inventory[this.actualWeapon].baseRotation.clone();
 		var basePosition = this.inventory[this.actualWeapon].basePosition.clone();
 
-		//On affecte les valeurs par étape
+		// On affecte les valeurs qui nous intéresse par étape
 		this.inventory[this.actualWeapon].rotation = baseRotation.clone();
-		this.inventory[this.actualWeapon].rotation.x -= (rotationNeeded.x * deSign);
+		this.inventory[this.actualWeapon].rotation.x -= (rotationNeeded.x * degSin);
 
 		this.inventory[this.actualWeapon].position = basePosition.clone();
-		this.inventory[this.actualWeapon].position.y += (positionNeeded.y * deSign);
-		this.inventory[this.actualWeapon].position.z += (positionNeeded.z * deSign);
+		this.inventory[this.actualWeapon].position.y += (positionNeeded.y * degSin);
+		this.inventory[this.actualWeapon].position.z += (positionNeeded.z * degSin);
+	},
+	reloadWeapon: function (type, numberAmmos) {
+		var ammoHud = document.getElementById('ammosValue');
+		var existingWeapon = false;
+		// On part du principe que l'arme n'existe pas
+		for (var i = 0; i < this.inventory.length; i++) {
+			if (this.inventory[i].typeWeapon === type) {
+				// Si l'arme existe, on lui donne les munitions
+				var existingWeapon = true;
+				if ((this.inventory[i].ammos + numberAmmos) >
+					this.Armory.weapons[i].setup.ammos.maximum) {
+					this.inventory[i].ammos = this.Armory.weapons[i].setup.ammos.maximum
+				} else {
+					this.inventory[i].ammos += numberAmmos;
+				}
+				var actualTypeWeapon = this.Armory.weapons[this.inventory[this.actualWeapon].typeWeapon];
+				this.textAmmos.innerText = this.inventory[this.actualWeapon].ammos;
+				this.totalTextAmmos.innerText = actualTypeWeapon.setup.ammos.maximum;
+				this.typeTextWeapon.innerText = actualTypeWeapon.name;
+				break;
+			}
+		}
+		// Si l'arme n'existe pas, on ajoute les munitions au sac de munitions
+		if (!existingWeapon) {
 
+			if (!this.tempAmmosBag[type]) {
+				this.tempAmmosBag[type] = 0;
+			}
+			if ((this.tempAmmosBag[type] + numberAmmos) >
+				this.Armory.weapons[type].setup.ammos.maximum) {
+				this.tempAmmosBag[type] = this.Armory.weapons[type].setup.ammos.maximum;
+			} else {
+				this.tempAmmosBag[type] += numberAmmos;
+			}
+		}
 	},
 };
