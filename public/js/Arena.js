@@ -233,7 +233,18 @@ Arena = function(game,props) {
 
 
     //MUSIQUE
-    const music = new BABYLON.Sound("la comté", "https://soundcloud.com/user-433351325/theme-vark-dador-musique-de-film-orchestral?utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing", scene, null, { loop: true, autoplay: true });
+
+    var music = new BABYLON.Sound("Music", "assets/sounds/darth_vader.mp3", scene, null, {loop: true, autoplay: true, volume: 0.7});
+
+    var laserSound = new BABYLON.Sound("Music", "assets/sounds/laser.mp3", scene, function () {
+        laserSound.play();
+    }, {volume: 1});
+
+    window.addEventListener("mousedown", function (evt) {
+        if (evt.button === 0) {
+            laserSound.play();
+        }
+    });
 
     //Arbres avec le générateur
 
@@ -302,6 +313,38 @@ Arena = function(game,props) {
             this.ammosBox.push(newAmmoBox);
         }
     }
+
+    //Animation
+
+    const frameRate = 60;
+
+    const xSlide = new BABYLON.Animation("xSlide", "rotation.y", frameRate, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_RELATIVE);
+
+    const keyFrames = [];
+
+    keyFrames.push({
+        frame: 0,
+        value: 0
+    });
+
+    keyFrames.push({
+        frame: 2 * frameRate,
+        value: 4
+    });
+
+    keyFrames.push({
+        frame: 4 * frameRate,
+        value: 8
+    });
+
+    xSlide.setKeys(keyFrames);
+
+    scene.beginDirectAnimation(this.weaponBox, [xSlide], 0, 4 * frameRate, true);
+    scene.beginDirectAnimation(this.ammosBox, [xSlide], 0, 4 * frameRate, true);
+    scene.beginDirectAnimation(this.bonusBox, [xSlide], 0, 4 * frameRate, true);
+
+    //Bruits de laser
+    //Courir
 };
 Arena.prototype = {
     newBonuses: function (position, type) {
